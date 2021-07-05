@@ -1,11 +1,21 @@
 MAKEFLAGS := --silent --always-make
 PAR := $(MAKE) -j 128
+DENO := deno run --no-check
 TEST := jol_test.mjs
 
+watch:
+	$(PAR) test-w lint-w
+
+prep: lint test
+
 test-w:
-	deno run --watch $(TEST)
+	$(DENO) --watch $(TEST)
 
 test:
-	deno run $(TEST)
+	$(DENO) $(TEST)
 
-prep: test
+lint-w:
+	watchexec -r -d=0 -e=mjs -n -- make lint
+
+lint:
+	deno lint

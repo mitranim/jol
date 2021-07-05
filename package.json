@@ -1,7 +1,7 @@
 {
   "name": "@mitranim/jol",
   "version": "0.1.0",
-  "description": "JS Collection Classes. Tiny extensions on JS built-in classes such as `Object`, `Array`, `Set`, `Map`, with nice features such as: easy-to-use typed collections with automatic idempotent element instantiation; dictionay with support for structured keys which are compared by value, not by reference; consistent constructor signatures, avoiding Array pitfalls. Tiny, dependency-free, single-file, native module.",
+  "description": "JS Collection Classes. Tiny extensions on JS built-in classes such as `Object`, `Array`, `Set`, `Map`, with nice features such as: easy-to-use typed collections with automatic idempotent element instantiation; dictionary with support for structured keys which are compared by value, not by reference; consistent constructor signatures, avoiding Array pitfalls. Tiny, dependency-free, single-file, native module.",
   "type": "module",
   "main": "./jol.mjs",
   "scripts": {

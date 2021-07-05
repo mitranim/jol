@@ -6,6 +6,26 @@ import {
 } from 'https://deno.land/std@0.100.0/testing/asserts.ts'
 import * as j from './jol.mjs'
 
+void function test_Null() {
+  eq(j.Null.prototype, null)
+
+  class Mock extends j.Null {}
+
+  const descs = Object.getOwnPropertyDescriptors(Mock.prototype)
+
+  equiv(descs, {
+    constructor: {
+      value: Mock,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    }
+  })
+
+  ok(!new Mock().toString)
+  ok(new Object().toString)
+}()
+
 void function test_Obj() {
   void function test_reject_invalid_inputs() {
     function nop() {}

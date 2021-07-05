@@ -8,6 +8,7 @@ export class Obj {
 }
 
 export class Arr extends Array {
+  // deno-lint-ignore constructor-super
   constructor(val) {
     validArgLen(arguments.length, 0, 1)
 
