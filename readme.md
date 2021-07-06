@@ -17,13 +17,14 @@ Browser compatibility: any ES6+ environment. For older browsers, polyfill `Set` 
   * [`class Null`](#class-null)
   * [`class Obj`](#class-obj)
   * [`class Arr`](#class-arr-extends-array)
-  * [`class EqDict`](#class-eqdict-extends-null)
+  * [`class EqDict`](#class-eqdict)
   * [`class ClsArr`](#class-clsarr-extends-arr)
   * [`class ClsSet`](#class-clsset-extends-set)
   * [`class ClsMap`](#class-clsmap-extends-map)
   * [`class Que`](#class-que-extends-set)
   * [`function assign`](#function-assigntarget-source)
   * [`function toInst`](#function-toinstval-cls)
+  * [`function toInstOpt`](#function-toinstoptval-cls)
   * [`function toKey`](#function-tokeykey)
   * [`function isPlain`](#isplainval)
 * [License](#license)
@@ -39,7 +40,7 @@ npm i -E @mitranim/jol
 
 ```js
 import * as j from '@mitranim/jol'
-import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.0/jol.mjs'
+import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.1/jol.mjs'
 ```
 
 ## API
@@ -103,9 +104,9 @@ new j.Arr(10, 20)
 new j.Arr(() => {})
 ```
 
-### `class EqDict extends Null`
+### `class EqDict`
 
-Like `Object`, `Object.create(null)`, or `Map`, but:
+Like `Object` or `Map`, but:
 
 * Keys can be structured data, such as `{one: 10}` or `['two', 'three']`.
 * Keys are always compared by structure, not by reference.
@@ -132,6 +133,8 @@ These internal methods require plain string keys, and are provided for subclasse
 * `eqMap.getRaw(key)`
 * `eqMap.setRaw(key, val)`
 * `eqMap.deleteRaw(key)`
+
+Unlike the syntax `object[key]`, methods of `EqDict` operate only on _own enumerable properties_. Because keys are always JSON-encoded, there is _no collision_ with `Object` methods and properties.
 
 ```js
 const coll = new j.EqDict()
@@ -274,6 +277,16 @@ val = j.toInst(val, Mock) // preserves existing instance
 val = j.toInst(val, Mock) // preserves existing instance
 ```
 
+### `function toInstOpt(val, cls)`
+
+Same as `toInst`, but if `val` is `null` or `undefined`, it's returned as-is, without instantiation.
+
+```js
+class Mock {constructor(val) {this.val = val}}
+j.toInstOpt(undefined, Mock) // undefined
+j.toInstOpt(10, Mock)        // Mock{val: 10}
+```
+
 ### `function toKey(key)`
 
 Used internally by `ClsArr`, `ClsSet`, `ClsMap`. Like `JSON.stringify` but:
@@ -299,6 +312,12 @@ Returns `true` if val is either:
 * Plain dict: `{}` or `Object.create(null)`.
 
 Used internally by `toKey`, which rejects other inputs (runtime exception).
+
+## Changelog
+
+### 0.1.1
+
+Added `toInstOpt`. `EqDict` now extends `Object` rather than `Null`.
 
 ## License
 

@@ -22,9 +22,8 @@ export class Arr extends Array {
   }
 }
 
-export class EqDict extends Null {
+export class EqDict {
   constructor(val) {
-    super()
     if (isSome(val)) assign(this, val)
   }
 
@@ -133,6 +132,10 @@ export function assign(tar, src) {
 export function toInst(val, cls) {
   if (isInst(val, cls) && val.constructor === cls) return val
   return new cls(val)
+}
+
+export function toInstOpt(val, cls) {
+  return isNil(val) ? val : toInst(val, cls)
 }
 
 export function toKey(val) {

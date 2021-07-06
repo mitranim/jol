@@ -461,6 +461,14 @@ void function test_toInst() {
   }()
 }()
 
+void function test_toInstOpt() {
+  class Mock {constructor(val) {this.val = val}}
+  eq(j.toInstOpt(null, Mock), null)
+  eq(j.toInstOpt(undefined, Mock), undefined)
+  ok(j.toInstOpt(10, Mock) instanceof Mock)
+  equiv(j.toInstOpt(10, Mock), {val: 10})
+}()
+
 void function test_toKey() {
   eq(j.toKey(),                            ``)
   eq(j.toKey(null),                        `null`)
