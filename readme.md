@@ -40,14 +40,14 @@ npm i -E @mitranim/jol
 
 ```js
 import * as j from '@mitranim/jol'
-import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.1/jol.mjs'
+import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.2/jol.mjs'
 ```
 
 ## API
 
 ### `class Null`
 
-Empty null-prototype class. Inherit from it for a "squeaky clean" class without the `Object` stuff.
+Inherits from `null` rather than `Object`. Extend `Null` for a "squeaky clean" class.
 
 ### `class Obj`
 
@@ -314,6 +314,10 @@ Returns `true` if val is either:
 Used internally by `toKey`, which rejects other inputs (runtime exception).
 
 ## Changelog
+
+### 0.1.2
+
+`new Null()` now also creates a null-based object, rather than `{}`. The behavior of `Null` subclasses is unchanged.
 
 ### 0.1.1
 

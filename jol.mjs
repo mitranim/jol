@@ -1,7 +1,7 @@
 /* Public Classes */
 
 export function Null() {}
-Null.prototype = null
+Null.prototype = Object.create(null)
 
 export class Obj {
   constructor(val) {assign(this, val)}
