@@ -3,9 +3,7 @@
 export function Null() {}
 Null.prototype = Object.create(null)
 
-export class Obj {
-  constructor(val) {assign(this, val)}
-}
+export class Obj {constructor(val) {assign(this, val)}}
 
 export class Arr extends Array {
   // deno-lint-ignore constructor-super
@@ -23,9 +21,7 @@ export class Arr extends Array {
 }
 
 export class EqDict {
-  constructor(val) {
-    if (isSome(val)) assign(this, val)
-  }
+  constructor(val) {if (isSome(val)) assign(this, val)}
 
   has(key) {return this.hasRaw(toKey(key))}
   get(key) {return this.getRaw(toKey(key))}
@@ -188,13 +184,14 @@ function fromJson(val) {
   return JSON.parse(val)
 }
 
-function stabilize(val, fun) {while (val !== (val = fun(val))); return val}
+function stabilize(val, fun) {while (!is(val, val = fun(val))); return val}
 
 function hasOwnEnum(val, key) {
   valid(key, isKey)
   return Object.prototype.propertyIsEnumerable.call(val, key)
 }
 
+function is(a, b) {return Object.is(a, b)}
 function isNil(val) {return val == null}
 function isSome(val) {return !isNil(val)}
 function isFun(val) {return typeof val === 'function'}

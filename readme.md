@@ -40,7 +40,7 @@ npm i -E @mitranim/jol
 
 ```js
 import * as j from '@mitranim/jol'
-import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.2/jol.mjs'
+import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.3/jol.mjs'
 ```
 
 ## API
@@ -314,6 +314,10 @@ Returns `true` if val is either:
 Used internally by `toKey`, which rejects other inputs (runtime exception).
 
 ## Changelog
+
+### 0.1.3
+
+Avoid an infinite loop when using `NaN` in `toKey` and `EqDict`.
 
 ### 0.1.2
 

@@ -462,6 +462,7 @@ void function test_toKey() {
   eq(j.toKey(null),                        `null`)
   eq(j.toKey('one'),                       `"one"`)
   eq(j.toKey(10),                          `10`)
+  eq(j.toKey(NaN),                         `null`)
   eq(j.toKey({}),                          `{}`)
   eq(j.toKey([]),                          `[]`)
   eq(j.toKey([{}]),                        `[{}]`)
