@@ -126,7 +126,7 @@ export function assign(tar, src) {
 }
 
 export function toInst(val, cls) {
-  if (isInst(val, cls) && val.constructor === cls) return val
+  if (isInst(val, cls)) return val
   return new cls(val)
 }
 

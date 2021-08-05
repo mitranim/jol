@@ -40,7 +40,7 @@ npm i -E @mitranim/jol
 
 ```js
 import * as j from '@mitranim/jol'
-import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.3/jol.mjs'
+import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.4/jol.mjs'
 ```
 
 ## API
@@ -264,7 +264,7 @@ j.assign(new j.Obj({}), new Mock())
 
 Idempotently converts `val` to an instance of `cls`:
 
-* If `val` is an instance of _exactly_ `cls` (not a subclass), returns `val` as-is.
+* If `val` is an instance of `cls`, returns `val` as-is.
 * Otherwise returns `new cls(val)`.
 
 ```js
@@ -314,6 +314,10 @@ Returns `true` if val is either:
 Used internally by `toKey`, which rejects other inputs (runtime exception).
 
 ## Changelog
+
+### 0.1.4
+
+`toInst` now allows subclass instances, instead of requiring an exact class match. This affects the behavior of all class collections.
 
 ### 0.1.3
 
