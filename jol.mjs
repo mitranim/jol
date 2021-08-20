@@ -8,7 +8,7 @@ export class Obj {constructor(val) {assign(this, val)}}
 export class Arr extends Array {
   // deno-lint-ignore constructor-super
   constructor(val) {
-    validArgLen(arguments.length, 0, 1)
+    reqArgLen(arguments.length, 0, 1)
 
     if (isNum(val)) {
       super(val)
@@ -42,7 +42,7 @@ export class EqDict {
   deleteRaw(key) {return this.hasRaw(key) && delete this[key]}
 
   forEach(fun, self) {
-    valid(fun, isFun)
+    req(fun, isFun)
     for (const key in this) {
       fun.call(self, this[key], fromJson(key), this)
     }
@@ -96,7 +96,7 @@ export class Que extends Set {
   }
 
   add(fun) {
-    valid(fun, isFun)
+    req(fun, isFun)
     if (this.flushing) fun()
     else super.add(fun)
   }
@@ -118,7 +118,7 @@ export class Que extends Set {
 /* Public Funs */
 
 export function assign(tar, src) {
-  valid(tar, isStruct)
+  req(tar, isStruct)
   if (!isDict(src) && !(isStruct(src) && isInst(src, tar.constructor))) {
     throw TypeError(`can't assign ${show(src)} due to type mismatch`)
   }
@@ -146,7 +146,7 @@ export function isPlain(val) {
 
 /* Internal Utils */
 
-function validArgLen(len, min, max) {
+function reqArgLen(len, min, max) {
   if (!(len >= min && len <= max)) {
     throw Error(`expected between ${min} and ${max} args, got ${len}`)
   }
@@ -157,7 +157,7 @@ function jsonStabilize(val) {
   if (isFun(val)) return null
   if (isArr(val)) return val.map(jsonStabilize)
   if (isDict(val)) return jsonStabilizeDict(val)
-  valid(val, isPlain)
+  req(val, isPlain)
   return val
 }
 
@@ -180,14 +180,14 @@ function toJson(val) {
 
 function fromJson(val) {
   if (isNil(val) || val === '') return undefined
-  valid(val, isStr)
+  req(val, isStr)
   return JSON.parse(val)
 }
 
 function stabilize(val, fun) {while (!is(val, val = fun(val))); return val}
 
 function hasOwnEnum(val, key) {
-  valid(key, isKey)
+  req(key, isKey)
   return Object.prototype.propertyIsEnumerable.call(val, key)
 }
 
@@ -220,7 +220,7 @@ function isDictPlain(val) {
   return true
 }
 
-function valid(val, test) {
+function req(val, test) {
   if (!test(val)) throw TypeError(`expected ${show(val)} to satisfy test ${show(test)}`)
 }
 
