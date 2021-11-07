@@ -23,8 +23,8 @@ Browser compatibility: any ES6+ environment. For older browsers, polyfill `Set` 
   * [`class ClsMap`](#class-clsmap-extends-map)
   * [`class Que`](#class-que-extends-set)
   * [`function assign`](#function-assigntarget-source)
-  * [`function toInst`](#function-toinstval-cls)
-  * [`function toInstOpt`](#function-toinstoptval-cls)
+  * [`function inst`](#function-instval-cls)
+  * [`function opt`](#function-optval-cls)
   * [`function toKey`](#function-tokeykey)
   * [`function isPlain`](#isplainval)
 * [License](#license)
@@ -40,7 +40,7 @@ npm i -E @mitranim/jol
 
 ```js
 import * as j from '@mitranim/jol'
-import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.4/jol.mjs'
+import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.5/jol.mjs'
 ```
 
 ## API
@@ -260,7 +260,7 @@ j.assign(new Mock(),    new j.Obj({}))
 j.assign(new j.Obj({}), new Mock())
 ```
 
-### `function toInst(val, cls)`
+### `function inst(val, cls)`
 
 Idempotently converts `val` to an instance of `cls`:
 
@@ -271,20 +271,20 @@ Idempotently converts `val` to an instance of `cls`:
 class Mock {}
 
 let val
-val = j.toInst(val, Mock) // new instance
-val = j.toInst(val, Mock) // preserves existing instance
-val = j.toInst(val, Mock) // preserves existing instance
-val = j.toInst(val, Mock) // preserves existing instance
+val = j.inst(val, Mock) // new instance
+val = j.inst(val, Mock) // preserves existing instance
+val = j.inst(val, Mock) // preserves existing instance
+val = j.inst(val, Mock) // preserves existing instance
 ```
 
-### `function toInstOpt(val, cls)`
+### `function opt(val, cls)`
 
-Same as `toInst`, but if `val` is `null` or `undefined`, it's returned as-is, without instantiation.
+Same as `inst`, but if `val` is `null` or `undefined`, it's returned as-is, without instantiation.
 
 ```js
 class Mock {constructor(val) {this.val = val}}
-j.toInstOpt(undefined, Mock) // undefined
-j.toInstOpt(10, Mock)        // Mock{val: 10}
+j.opt(undefined, Mock) // undefined
+j.opt(10, Mock)        // Mock{val: 10}
 ```
 
 ### `function toKey(key)`
@@ -314,6 +314,10 @@ Returns `true` if val is either:
 Used internally by `toKey`, which rejects other inputs (runtime exception).
 
 ## Changelog
+
+### 0.1.5
+
+Renamed `toInst` → `inst`, `toInstOpt` → `opt` for brevity.
 
 ### 0.1.4
 

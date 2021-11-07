@@ -414,47 +414,47 @@ void function test_assign() {
   }()
 }()
 
-void function test_toInst() {
+void function test_inst() {
   // These rejections originate in `Mock` -> `Obj` -> `assign`.
   // We're testing the fact of calling the constructor.
   void function test_indirectly_reject_invalid_inputs() {
     class Mock extends j.Obj {}
     function nop() {}
 
-    throws(() => j.toInst(),                 TypeError)
-    throws(() => j.toInst(null,      Mock),  TypeError)
-    throws(() => j.toInst('one',     Mock),  TypeError)
-    throws(() => j.toInst(10,        Mock),  TypeError)
-    throws(() => j.toInst(nop,       Mock),  TypeError)
-    throws(() => j.toInst([],        Mock),  TypeError)
-    throws(() => j.toInst(new Set(), Mock),  TypeError)
+    throws(() => j.inst(),                 TypeError)
+    throws(() => j.inst(null,      Mock),  TypeError)
+    throws(() => j.inst('one',     Mock),  TypeError)
+    throws(() => j.inst(10,        Mock),  TypeError)
+    throws(() => j.inst(nop,       Mock),  TypeError)
+    throws(() => j.inst([],        Mock),  TypeError)
+    throws(() => j.inst(new Set(), Mock),  TypeError)
   }()
 
   void function test_instantiate_from_dict() {
     class Mock {}
-    ok(j.toInst({}, Mock) instanceof Mock)
+    ok(j.inst({}, Mock) instanceof Mock)
   }()
 
   void function test_preserve_pre_instantiated() {
     class Mock {}
     const val = new Mock()
-    eq(j.toInst(val, Mock),                 val)
-    eq(j.toInst(j.toInst(val, Mock), Mock), val)
+    eq(j.inst(val, Mock),                 val)
+    eq(j.inst(j.inst(val, Mock), Mock), val)
   }()
 
   void function test_upgrade_to_subclass() {
     class Sup {}
     class Sub extends Sup {}
-    eq(j.toInst(new Sup(), Sub).constructor, Sub)
+    eq(j.inst(new Sup(), Sub).constructor, Sub)
   }()
 }()
 
-void function test_toInstOpt() {
+void function test_opt() {
   class Mock {constructor(val) {this.val = val}}
-  eq(j.toInstOpt(null, Mock), null)
-  eq(j.toInstOpt(undefined, Mock), undefined)
-  ok(j.toInstOpt(10, Mock) instanceof Mock)
-  equiv(j.toInstOpt(10, Mock), {val: 10})
+  eq(j.opt(null, Mock), null)
+  eq(j.opt(undefined, Mock), undefined)
+  ok(j.opt(10, Mock) instanceof Mock)
+  equiv(j.opt(10, Mock), {val: 10})
 }()
 
 void function test_toKey() {

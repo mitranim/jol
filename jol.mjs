@@ -59,13 +59,13 @@ export class ClsArr extends Arr {
 
   push(...vals) {
     for (let i = 0; i < vals.length; i++) {
-      super.push(toInst(vals[i], this.cls))
+      super.push(inst(vals[i], this.cls))
     }
   }
 
   unshift(...vals) {
     for (let i = 0; i < vals.length; i++) {
-      super.unshift(toInst(vals[i], this.cls))
+      super.unshift(inst(vals[i], this.cls))
     }
   }
 }
@@ -73,7 +73,7 @@ export class ClsArr extends Arr {
 export class ClsSet extends Set {
   get cls() {return Object}
 
-  add(val) {super.add(toInst(val, this.cls))}
+  add(val) {super.add(inst(val, this.cls))}
 
   get [Symbol.toStringTag]() {return this.constructor.name}
 }
@@ -82,7 +82,7 @@ export class ClsMap extends Map {
   get cls() {return Object}
 
   set(key, val) {
-    val = toInst(val, this.cls)
+    val = inst(val, this.cls)
     super.set(key, val)
   }
 
@@ -125,13 +125,13 @@ export function assign(tar, src) {
   return Object.assign(tar, src)
 }
 
-export function toInst(val, cls) {
+export function inst(val, cls) {
   if (isInst(val, cls)) return val
   return new cls(val)
 }
 
-export function toInstOpt(val, cls) {
-  return isNil(val) ? val : toInst(val, cls)
+export function opt(val, cls) {
+  return isNil(val) ? val : inst(val, cls)
 }
 
 export function toKey(val) {
