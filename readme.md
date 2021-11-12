@@ -110,10 +110,10 @@ Like `Object` or `Map`, but:
 
 * Keys can be structured data, such as `{one: 10}` or `['two', 'three']`.
 * Keys are always compared by structure, not by reference.
-* Internally, keys are encoded as JSON with object keys in sorted order.
+* Internally, keys are encoded as deterministic JSON.
   * Relies on engine quirks; has not been tested in all browsers.
   * The conversion function `toKey` is exported separately.
-  * Computational complexity is the same as on `{}` (probably ≈O(1)).
+  * Computational complexity for access-by-key should be similar to `{}`, with the added overhead of JSON encoding (should scale with key size but not dict size).
 
 Methods are similar to `Map`:
 
