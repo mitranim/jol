@@ -3,8 +3,6 @@
 export function Null() {}
 Null.prototype = Object.create(null)
 
-export class Obj {constructor(val) {assign(this, val)}}
-
 export class Arr extends Array {
   // deno-lint-ignore constructor-super
   constructor(val) {
@@ -15,9 +13,54 @@ export class Arr extends Array {
     }
     else {
       super()
-      if (!isNil(val)) this.push(...val)
+      if (isSome(val)) this.push(...val)
     }
   }
+}
+
+export class ClsArr extends Arr {
+  get cls() {return Object}
+
+  push(...vals)    {vals.forEach(this.pushOne, this);    return this}
+  unshift(...vals) {vals.forEach(this.unshiftOne, this); return this}
+  pushOne(val)     {super.push(inst(val, this.cls));     return this}
+  unshiftOne(val)  {super.unshift(inst(val, this.cls));  return this}
+}
+
+export class Dict extends Map {
+  constructor(val) {
+    super(isDict(val) ? dictIter(val) : val)
+  }
+
+  set(key, val) {
+    req(key, isString)
+    return super.set(key, val)
+  }
+
+  patch(val) {
+    if (isDict(val)) each(val, selfSet, this)
+    else if (isSome(val)) val.forEach(selfSet, this)
+    return this
+  }
+
+  toJSON() {
+    const buf = {}
+    this.forEach(selfAssign, buf)
+    return buf
+  }
+
+  get [Symbol.toStringTag]() {return this.constructor.name}
+}
+
+export class ClsDict extends Dict {
+  get cls() {return Object}
+  set(key, val) {return super.set(key, inst(val, this.cls))}
+}
+
+export class ClsMap extends Map {
+  set(key, val) {return super.set(key, inst(val, this.cls))}
+  get cls() {return Object}
+  get [Symbol.toStringTag]() {return this.constructor.name}
 }
 
 export class EqDict {
@@ -54,38 +97,9 @@ export class EqDict {
   [Symbol.iterator]() {return this.entries()}
 }
 
-export class ClsArr extends Arr {
-  get cls() {return Object}
-
-  push(...vals) {
-    for (let i = 0; i < vals.length; i++) {
-      super.push(inst(vals[i], this.cls))
-    }
-  }
-
-  unshift(...vals) {
-    for (let i = 0; i < vals.length; i++) {
-      super.unshift(inst(vals[i], this.cls))
-    }
-  }
-}
-
 export class ClsSet extends Set {
+  add(val) {return super.add(inst(val, this.cls))}
   get cls() {return Object}
-
-  add(val) {super.add(inst(val, this.cls))}
-
-  get [Symbol.toStringTag]() {return this.constructor.name}
-}
-
-export class ClsMap extends Map {
-  get cls() {return Object}
-
-  set(key, val) {
-    val = inst(val, this.cls)
-    super.set(key, val)
-  }
-
   get [Symbol.toStringTag]() {return this.constructor.name}
 }
 
@@ -99,9 +113,13 @@ export class Que extends Set {
     req(fun, isFun)
     if (this.flushing) fun()
     else super.add(fun)
+    return this
   }
 
-  pause() {this.flushing = false}
+  pause() {
+    this.flushing = false
+    return this
+  }
 
   flush() {
     this.flushing = true
@@ -110,6 +128,7 @@ export class Que extends Set {
       this.delete(fun)
       fun()
     }
+    return this
   }
 
   get [Symbol.toStringTag]() {return this.constructor.name}
@@ -119,10 +138,11 @@ export class Que extends Set {
 
 export function assign(tar, src) {
   req(tar, isStruct)
-  if (!isDict(src) && !(isStruct(src) && isInst(src, tar.constructor))) {
-    throw TypeError(`can't assign ${show(src)} due to type mismatch`)
+  if (isSome(src)) {
+    reqAssignable(tar, src)
+    each(src, maybeAssign, tar)
   }
-  return Object.assign(tar, src)
+  return tar
 }
 
 export function inst(val, cls) {
@@ -180,30 +200,47 @@ function toJson(val) {
 
 function fromJson(val) {
   if (isNil(val) || val === '') return undefined
-  req(val, isStr)
+  req(val, isString)
   return JSON.parse(val)
 }
 
 function stabilize(val, fun) {while (!is(val, val = fun(val))); return val}
 
-function hasOwnEnum(val, key) {
-  req(key, isKey)
-  return Object.prototype.propertyIsEnumerable.call(val, key)
+function each(vals, fun, self) {
+  for (const key in vals) fun.call(self, vals[key], key)
 }
+
+function hasOwnEnum(ref, key) {
+  req(key, isKey)
+  return Object.prototype.propertyIsEnumerable.call(ref, key)
+}
+
+// eslint-disable-next-line no-invalid-this
+function selfAssign(val, key) {this[key] = val}
+
+// eslint-disable-next-line no-invalid-this
+function selfSet(val, key) {this.set(key, val)}
+
+function maybeAssign(val, key) {
+  // eslint-disable-next-line no-invalid-this
+  if (!(key in this) || hasOwnEnum(this, key)) this[key] = val
+}
+
+function* dictIter(val) {for (const key in val) yield [key, val[key]]}
 
 function is(a, b) {return Object.is(a, b)}
 function isNil(val) {return val == null}
 function isSome(val) {return !isNil(val)}
 function isFun(val) {return typeof val === 'function'}
-function isStr(val) {return typeof val === 'string'}
-function isKey(val) {return isStr(val)}
+function isString(val) {return typeof val === 'string'}
+function isKey(val) {return isString(val)}
 function isNum(val) {return typeof val === 'number'}
 function isComp(val) {return isObj(val) || isFun(val)}
 function isPrim(val) {return !isComp(val)}
 function isObj(val) {return val !== null && typeof val === 'object'}
 function isStruct(val) {return isObj(val) && !isArr(val)}
 function isArr(val) {return isInst(val, Array)}
-function isInst(val, Cls) {return isComp(val) && val instanceof Cls}
+function isInst(val, cls) {return isComp(val) && val instanceof cls}
 
 function isDict(val) {
   if (!isObj(val)) return false
@@ -216,8 +253,15 @@ function isArrPlain(val) {
 }
 
 function isDictPlain(val) {
+  // Not a typo. We only check the first property.
   for (const key in val) return isPlain(val[key])
   return true
+}
+
+function reqAssignable(tar, src) {
+  req(src, isStruct)
+  if (isDict(src) || isInst(src, tar.constructor)) return
+  throw TypeError(`can't assign ${show(src)} due to type mismatch`)
 }
 
 function req(val, test) {
@@ -227,7 +271,7 @@ function req(val, test) {
 // Placeholder, might improve.
 function show(val) {
   if (isFun(val) && val.name) return val.name
-  if (isStr(val) || isArr(val) || isDict(val)) {
+  if (isString(val) || isArr(val) || isDict(val)) {
     try {return toJson(val)}
     catch (_) {return String(val)}
   }

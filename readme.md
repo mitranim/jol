@@ -3,7 +3,7 @@
 "**J**S C**ol**lection C**l**asses". Tiny extensions on JS built-in classes such as `Object`, `Array`, `Set`, `Map`, with nice features such as:
 
 * Easy-to-use typed collections such as `Arr<Cls>` or `Set<Cls>` with automatic idempotent element instantiation.
-* `EqDict`: dictionary with support for structured keys, like `{key: 'val'}`. Compares keys by value, not by reference.
+* `EqDict`: dictionary with support for structured keys, like `["composite", "key"]`. Compares keys by value, not by reference.
 * Consistent constructor signatures: everything is `new Cls(val)`, like ES6 `Map` and `Set`.
 
 Tiny, dependency-free, single file, native JS module.
@@ -15,12 +15,13 @@ Browser compatibility: any ES6+ environment. For older browsers, polyfill `Set` 
 * [Usage](#usage)
 * [API](#api)
   * [`class Null`](#class-null)
-  * [`class Obj`](#class-obj)
   * [`class Arr`](#class-arr-extends-array)
-  * [`class EqDict`](#class-eqdict)
   * [`class ClsArr`](#class-clsarr-extends-arr)
-  * [`class ClsSet`](#class-clsset-extends-set)
+  * [`class Dict`](#class-dict-extends-map)
+  * [`class ClsDict`](#class-clsdict-extends-dict)
   * [`class ClsMap`](#class-clsmap-extends-map)
+  * [`class EqDict`](#class-eqdict)
+  * [`class ClsSet`](#class-clsset-extends-set)
   * [`class Que`](#class-que-extends-set)
   * [`function assign`](#function-assigntarget-source)
   * [`function inst`](#function-instval-cls)
@@ -40,7 +41,7 @@ npm i -E @mitranim/jol
 
 ```js
 import * as j from '@mitranim/jol'
-import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.5/jol.mjs'
+import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.6/jol.mjs'
 ```
 
 ## API
@@ -48,38 +49,6 @@ import * as j from 'https://cdn.jsdelivr.net/npm/@mitranim/jol@0.1.5/jol.mjs'
 ### `class Null`
 
 Inherits from `null` rather than `Object`. Extend `Null` for a "squeaky clean" class.
-
-### `class Obj`
-
-Like `Object` or `{}`, but rather than coercing _anything_ to an object, it _restricts_ the inputs to plain dicts and its own subclasses.
-
-**Valid** calls, all equivalent:
-
-```js
-new j.Obj(Object.create(null, {one: {value: 10, enumerable: true}}))
-new j.Obj({one: 10})
-new j.Obj(new j.Obj({one: 10}))
-new j.Obj(new class extends j.Obj {}({one: 10}))
-```
-
-**Invalid** calls (runtime exception):
-
-```js
-new j.Obj()
-new j.Obj(10)
-new j.Obj('str')
-new j.Obj([])
-```
-
-`Obj` is nothing more than `Object` with additional assertions. `jol`'s [`assign`](#function-assigntarget-source) provides the same functionality without subclassing `Obj`:
-
-```js
-class Model {
-  constructor(val) {
-    j.assign(this, val)
-  }
-}
-```
 
 ### `class Arr extends Array`
 
@@ -104,6 +73,78 @@ new j.Arr(10, 20)
 new j.Arr(() => {})
 ```
 
+### `class ClsArr extends Arr`
+
+Runtime approximation of `Arr<Cls>`. Idempotently auto-instantiates values via `this.cls`.
+
+```js
+class Model {
+  constructor(val) {this.val = val * 2}
+}
+
+class Models extends j.ClsArr {
+  get cls() {return Model}
+}
+
+new Models([10, 20])
+// [ Model { val: 20 }, Model { val: 40 } ]
+```
+
+### `class Dict extends Map`
+
+Variant of `Map` whose behavior is closer to `Object`:
+
+  * Can be constructed from plain objects: `new j.Dict({one: 10})`.
+  * Compatible with JSON. Reversible encoding and decoding.
+  * Allows **only** strings as keys. Other keys cause exceptions.
+
+Compatibility with JSON:
+
+```js
+new j.Dict({one: 10, two: 20})
+// Dict { "one" => 10, "two" => 20 }
+
+new j.Dict(JSON.parse(`{"one": 10, "two": 20}`))
+// Dict { "one" => 10, "two" => 20 }
+
+JSON.stringify(new j.Dict({one: 10, two: 20}))
+// {"one":10,"two":20}
+```
+
+### `class ClsDict extends Dict`
+
+Runtime approximation of `Dict<Cls>`. Idempotently auto-instantiates values via `this.cls`.
+
+```js
+class Model {
+  constructor(val) {this.val = val * 2}
+}
+
+class Models extends j.ClsDict {
+  get cls() {return Model}
+}
+
+new Models({one: 10, two: 20})
+// Models { "one" => Model { val: 20 }, "two" => Model { val: 40 } }
+```
+
+### `class ClsMap extends Map`
+
+Runtime approximation of `Map<any, Cls>`. Idempotently auto-instantiates values via `this.cls`.
+
+```js
+class Model {
+  constructor(val) {this.val = val * 2}
+}
+
+class Models extends j.ClsMap {
+  get cls() {return Model}
+}
+
+new Models([[10, 20], [30, 40]])
+// Models { 10 => Model { val: 40 }, 30 => Model { val: 80 } }
+```
+
 ### `class EqDict`
 
 Like `Object` or `Map`, but:
@@ -113,7 +154,7 @@ Like `Object` or `Map`, but:
 * Internally, keys are encoded as deterministic JSON.
   * Relies on engine quirks; has not been tested in all browsers.
   * The conversion function `toKey` is exported separately.
-  * Computational complexity for access-by-key should be similar to `{}`, with the added overhead of JSON encoding (should scale with key size but not dict size).
+  * Computational complexity for access-by-key should be similar to `{}`, with the added overhead of JSON encoding (should scale with key size but not overall dict size).
 
 Methods are similar to `Map`:
 
@@ -158,49 +199,21 @@ new j.EqDict({one: 10})
 
 All keys must be created by calling `.set()`, otherwise they don't get encoded, and you can't retrieve the values with `.get()`!
 
-### `class ClsArr extends Arr`
-
-Runtime approximation of `Arr<Cls>`. Idempotently auto-instantiates values via `this.cls`.
-
-```js
-class Model extends j.Obj {}
-
-class Models extends j.ClsArr {
-  get cls() {return Model}
-}
-
-new Models([{id: 10}, {id: 20}])
-// Models(2) [ Model { id: 10 }, Model { id: 20 } ]
-```
-
 ### `class ClsSet extends Set`
 
 Runtime approximation of `Set<Cls>`. Idempotently auto-instantiates values via `this.cls`.
 
 ```js
-class Model extends j.Obj {}
+class Model {
+  constructor(val) {this.val = val * 2}
+}
 
 class Models extends j.ClsSet {
   get cls() {return Model}
 }
 
-new Models([{id: 10}, {id: 20}])
-// Models(2) { Model { id: 10 }, Model { id: 20 } }
-```
-
-### `class ClsMap extends Map`
-
-Runtime approximation of `Map<any, Cls>`. Idempotently auto-instantiates values via `this.cls`.
-
-```js
-class Model extends j.Obj {}
-
-class Models extends j.ClsMap {
-  get cls() {return Model}
-}
-
-new Models([[10, {id: 10}], [20, {id: 20}]])
-// Models(2) { 10 => Model { id: 10 }, 20 => Model { id: 20 } }
+new Models([10, 20])
+// Models { Model { val: 20 }, Model { val: 40 } }
 ```
 
 ### `class Que extends Set`
@@ -225,10 +238,11 @@ que.pause()
 
 ### `function assign(target, source)`
 
-Wrapper for `Object.assign` with additional assertions:
+Similar to `Object.assign`, but with differences:
 
 * `target` must be a non-array object (internally termed "struct").
-* `source` must be either a plain dict (`{}` or `Object.create(null)`), or a subclass of `target.constructor`.
+* `source` must be either nil (`undefined` or `null`), a plain dict (`{}` or `Object.create(null)`), or a subclass of `target.constructor`.
+* Does **not** shadow inherited or non-enumerable properties.
 
 **Valid** calls:
 
@@ -237,6 +251,7 @@ class Mock {
   constructor() {this.key = 'val'}
 }
 
+j.assign({},            undefined)
 j.assign({},            {key: 'val'})
 j.assign({},            new Mock())
 j.assign(new Mock(),    {key: 'val'})
@@ -250,7 +265,6 @@ j.assign({},            new j.Obj({key: 'val'}))
 ```js
 class Mock {}
 
-j.assign(null,          {})
 j.assign(10,            {})
 j.assign('one',         {})
 j.assign({},            [])
@@ -258,6 +272,13 @@ j.assign([],            {})
 j.assign([],            [])
 j.assign(new Mock(),    new j.Obj({}))
 j.assign(new j.Obj({}), new Mock())
+```
+
+Non-shadowing behavior:
+
+```js
+j.assign({}, {constructor: 10, toString: 20, unknown: 30})
+// {unknown: 30}
 ```
 
 ### `function inst(val, cls)`
@@ -314,6 +335,24 @@ Returns `true` if val is either:
 Used internally by `toKey`, which rejects other inputs (runtime exception).
 
 ## Changelog
+
+### 0.1.6
+
+Additions:
+
+  * Add `Dict`.
+  * Add `ClsDict`.
+
+Breaking:
+
+  * Removed `Obj`.
+  * `assign` now avoids shadowing inherited or non-enumerable properties.
+  * `assign` now allows nil source, doing nothing instead of throwing.
+
+Misc:
+
+  * Overridden methods of `Arr`, `ClsArr`, `ClsMap`, `ClsSet` now return `this` instead of `undefined`.
+  * `Que..pause` and `Que..flush` now return `this`.
 
 ### 0.1.5
 
